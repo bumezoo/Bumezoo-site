@@ -1,0 +1,814 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bumezoo — Dashboard</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --blue-glow:   #00d4ff;
+      --blue-dim:    #0088aa;
+      --purple-glow: #7b2fff;
+      --bg:          #000000;
+      --surface:     rgba(255,255,255,.04);
+      --surface-2:   rgba(255,255,255,.07);
+      --border:      rgba(0,212,255,.18);
+      --text-muted:  rgba(255,255,255,.45);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      color: #fff;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow-x: hidden;
+    }
+
+    #canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 0% 50%,   rgba(123,47,255,.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 100% 50%,  rgba(0,212,255,.15)  0%, transparent 55%),
+        radial-gradient(ellipse at 50% 100%,  rgba(0,136,170,.12)  0%, transparent 50%);
+    }
+
+    .scanline {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(0,0,0,.04) 2px, rgba(0,0,0,.04) 4px
+      );
+    }
+
+    header {
+      position: relative;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1.2rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,.65);
+      backdrop-filter: blur(12px);
+      flex-wrap: wrap;
+      gap: 1rem;
+      animation: fadeDown .7s ease both;
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(1.1rem, 3.5vw, 1.6rem);
+      letter-spacing: .18em;
+      color: #fff;
+      text-decoration: none;
+      text-shadow:
+        0 0 8px  var(--blue-glow),
+        0 0 24px var(--blue-glow),
+        0 0 60px rgba(0,212,255,.4);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .logo span {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .28em;
+      color: var(--blue-glow);
+      opacity: .7;
+      display: block;
+      margin-top: .18rem;
+    }
+
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+    }
+
+    .user-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      color: rgba(255,255,255,.5);
+    }
+
+    .user-badge strong {
+      color: var(--blue-glow);
+    }
+
+    .btn-logout {
+      background: transparent;
+      border: 1px solid rgba(255,70,100,.5);
+      border-radius: 6px;
+      color: rgba(255,70,100,.8);
+      font-family: 'Orbitron', monospace;
+      font-size: .65rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      padding: .45rem 1.1rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all .2s ease;
+    }
+
+    .btn-logout:hover {
+      background: rgba(255,70,100,.15);
+      border-color: #ff4466;
+      color: #ff4466;
+      box-shadow: 0 0 16px rgba(255,70,100,.3);
+    }
+
+    main {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 1.5rem;
+      max-width: 1200px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 2rem 1.5rem;
+      animation: fadeUp .8s .1s ease both;
+    }
+
+    .section-title {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .3em;
+      color: var(--blue-glow);
+      text-transform: uppercase;
+      opacity: .8;
+      margin-bottom: 1rem;
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+    }
+
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--border), transparent);
+    }
+
+    .panel-left {
+      display: flex;
+      flex-direction: column;
+      gap: 1.2rem;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border);
+      border-radius: 14px;
+      padding: 2.5rem 1.5rem;
+      text-align: center;
+      cursor: pointer;
+      transition: border-color .25s, background .25s, box-shadow .25s;
+      background: var(--surface);
+      position: relative;
+    }
+
+    .upload-zone.drag-over {
+      border-color: var(--blue-glow);
+      background: rgba(0,212,255,.06);
+      box-shadow: 0 0 30px rgba(0,212,255,.2), inset 0 0 30px rgba(0,212,255,.05);
+    }
+
+    .upload-zone:hover {
+      border-color: rgba(0,212,255,.5);
+      background: var(--surface-2);
+    }
+
+    .upload-icon {
+      font-size: 2.8rem;
+      margin-bottom: .8rem;
+      filter: drop-shadow(0 0 10px var(--blue-glow));
+      display: block;
+    }
+
+    .upload-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .8rem;
+      letter-spacing: .12em;
+      color: rgba(255,255,255,.6);
+      line-height: 1.7;
+    }
+
+    .upload-label strong {
+      color: var(--blue-glow);
+      display: block;
+      font-size: .88rem;
+      margin-bottom: .3rem;
+    }
+
+    #file-input { display: none; }
+
+    .btn-upload {
+      width: 100%;
+      background: transparent;
+      border: 1px solid var(--blue-glow);
+      border-radius: 8px;
+      color: var(--blue-glow);
+      font-family: 'Orbitron', monospace;
+      font-size: .72rem;
+      font-weight: 700;
+      letter-spacing: .18em;
+      padding: .85rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all .2s ease;
+      margin-top: -.2rem;
+    }
+
+    .btn-upload:hover {
+      background: var(--blue-glow);
+      color: #000;
+      box-shadow: 0 0 24px rgba(0,212,255,.5);
+    }
+
+    .stats-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.2rem 1.4rem;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: .8rem;
+    }
+
+    .stat-item { text-align: center; }
+
+    .stat-value {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.3rem;
+      font-weight: 700;
+      color: var(--blue-glow);
+      text-shadow: 0 0 12px var(--blue-glow);
+    }
+
+    .stat-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .15em;
+      color: rgba(255,255,255,.3);
+      text-transform: uppercase;
+      margin-top: .2rem;
+    }
+
+    .upload-progress {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1rem 1.2rem;
+    }
+
+    .upload-progress.active { display: block; }
+
+    .progress-info {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: .5rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .68rem;
+      color: rgba(255,255,255,.5);
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 5px;
+      background: rgba(255,255,255,.08);
+      border-radius: 99px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--blue-dim), var(--blue-glow));
+      box-shadow: 0 0 10px var(--blue-glow);
+      transition: width .1s linear;
+    }
+
+    .panel-right {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .search-bar {
+      display: flex;
+      gap: .7rem;
+      margin-bottom: 1rem;
+      align-items: center;
+    }
+
+    .search-input {
+      flex: 1;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .8rem;
+      letter-spacing: .05em;
+      padding: .6rem 1rem;
+      outline: none;
+      transition: border-color .25s, box-shadow .25s;
+    }
+
+    .search-input::placeholder { color: rgba(255,255,255,.25); }
+
+    .search-input:focus {
+      border-color: var(--blue-glow);
+      box-shadow: 0 0 0 2px rgba(0,212,255,.1);
+    }
+
+    .file-list {
+      display: flex;
+      flex-direction: column;
+      gap: .6rem;
+      flex: 1;
+    }
+
+    .file-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: .9rem 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      transition: border-color .2s, background .2s, transform .2s;
+      animation: fadeUp .4s ease both;
+    }
+
+    .file-item:hover {
+      border-color: rgba(0,212,255,.4);
+      background: var(--surface-2);
+      transform: translateX(4px);
+    }
+
+    .file-icon {
+      font-size: 1.6rem;
+      filter: drop-shadow(0 0 6px var(--blue-glow));
+      flex-shrink: 0;
+    }
+
+    .file-info {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .file-name {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .83rem;
+      color: rgba(255,255,255,.85);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .file-meta {
+      font-size: .68rem;
+      color: var(--text-muted);
+      margin-top: .2rem;
+      display: flex;
+      gap: .8rem;
+    }
+
+    .file-type-badge {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .58rem;
+      letter-spacing: .1em;
+      padding: .15rem .5rem;
+      border-radius: 4px;
+      border: 1px solid rgba(0,212,255,.3);
+      color: var(--blue-glow);
+      text-transform: uppercase;
+    }
+
+    .btn-download {
+      background: transparent;
+      border: 1px solid rgba(0,212,255,.35);
+      border-radius: 6px;
+      color: rgba(0,212,255,.7);
+      font-family: 'Orbitron', monospace;
+      font-size: .6rem;
+      font-weight: 700;
+      letter-spacing: .12em;
+      padding: .45rem .9rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all .2s ease;
+      flex-shrink: 0;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: .4rem;
+    }
+
+    .btn-download:hover {
+      background: rgba(0,212,255,.12);
+      border-color: var(--blue-glow);
+      color: var(--blue-glow);
+      box-shadow: 0 0 14px rgba(0,212,255,.3);
+    }
+
+    .btn-delete {
+      background: transparent;
+      border: 1px solid rgba(255,70,100,.2);
+      border-radius: 6px;
+      color: rgba(255,70,100,.5);
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .75rem;
+      padding: .4rem .6rem;
+      cursor: pointer;
+      transition: all .2s ease;
+      flex-shrink: 0;
+    }
+
+    .btn-delete:hover {
+      border-color: #ff4466;
+      color: #ff4466;
+      background: rgba(255,70,100,.08);
+    }
+
+    .empty-state {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      padding: 4rem 2rem;
+      text-align: center;
+      gap: 1rem;
+      opacity: .5;
+    }
+
+    .empty-state .empty-icon { font-size: 3rem; }
+
+    .empty-state p {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .75rem;
+      letter-spacing: .15em;
+      color: rgba(255,255,255,.4);
+    }
+
+    footer {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      padding: 1.2rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .6rem;
+      letter-spacing: .18em;
+      color: rgba(255,255,255,.18);
+      border-top: 1px solid rgba(255,255,255,.05);
+    }
+
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(12px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse-glow {
+      0%,100% { text-shadow: 0 0 8px var(--blue-glow), 0 0 24px var(--blue-glow), 0 0 60px rgba(0,212,255,.4); }
+      50%      { text-shadow: 0 0 16px var(--blue-glow), 0 0 48px var(--blue-glow), 0 0 100px rgba(0,212,255,.6); }
+    }
+
+    @media (max-width: 768px) {
+      main { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+  <div class="vignette"></div>
+  <div class="scanline"></div>
+
+  <header>
+    <div class="logo">
+      BUMEZOO
+      <span>File Vault — Dashboard</span>
+    </div>
+
+    <div class="header-right">
+      <span class="user-badge">
+        Logged in as &nbsp;<strong id="display-user">admin</strong>
+      </span>
+      <button class="btn-logout" onclick="handleLogout()">&#9211; &nbsp;LOGOUT</button>
+    </div>
+  </header>
+
+  <main>
+    <!-- LEFT PANEL: Upload -->
+    <div class="panel-left">
+      <div class="section-title">Upload</div>
+
+      <div
+        class="upload-zone"
+        id="upload-zone"
+        onclick="document.getElementById('file-input').click()"
+      >
+        <span class="upload-icon">📤</span>
+        <div class="upload-label">
+          <strong>Drop files here</strong>
+          or click to browse
+        </div>
+      </div>
+
+      <input type="file" id="file-input" multiple />
+
+      <button class="btn-upload" onclick="document.getElementById('file-input').click()">
+        &#xff0b; &nbsp;SELECT FILES
+      </button>
+
+      <div class="upload-progress" id="upload-progress">
+        <div class="progress-info">
+          <span id="progress-filename">uploading…</span>
+          <span id="progress-pct">0%</span>
+        </div>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill"></div>
+        </div>
+      </div>
+
+      <div class="stats-box">
+        <div class="stat-item">
+          <div class="stat-value" id="stat-count">0</div>
+          <div class="stat-label">Files</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value" id="stat-size">0 KB</div>
+          <div class="stat-label">Stored</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- RIGHT PANEL: File List -->
+    <div class="panel-right">
+      <div class="section-title">Your Files</div>
+
+      <div class="search-bar">
+        <input
+          class="search-input"
+          type="text"
+          id="search-input"
+          placeholder="Search files…"
+          oninput="renderFiles()"
+        />
+      </div>
+
+      <div class="file-list" id="file-list"></div>
+    </div>
+  </main>
+
+  <footer>© 2026 Bumezoo — All rights reserved</footer>
+
+  <script>
+    if (sessionStorage.getItem('loggedIn') !== 'true') {
+      window.location.href = 'index.html';
+    }
+
+    const savedUser = sessionStorage.getItem('username') || 'admin';
+    document.getElementById('display-user').textContent = savedUser;
+
+    let files = [
+      { id: 1, name: 'Project_Proposal.pdf',  size: 245000, date: '2026-04-10', type: 'PDF',  blob: null },
+      { id: 2, name: 'Budget_Q1_2026.xlsx',   size: 89000,  date: '2026-04-12', type: 'XLSX', blob: null },
+      { id: 3, name: 'Logo_Final.png',         size: 512000, date: '2026-04-15', type: 'IMG',  blob: null },
+      { id: 4, name: 'Meeting_Notes.docx',     size: 34000,  date: '2026-04-16', type: 'DOCX', blob: null },
+    ];
+
+    let nextId = 5;
+
+    function getFileIcon(name) {
+      const ext = name.split('.').pop().toLowerCase();
+      const icons = {
+        pdf: '📄', xlsx: '📊', xls: '📊',
+        docx: '📝', doc: '📝', txt: '📋',
+        png: '🖼️', jpg: '🖼️', jpeg: '🖼️', gif: '🖼️', webp: '🖼️',
+        mp4: '🎬', mov: '🎬', mp3: '🎵',
+        zip: '📦', rar: '📦',
+        js: '⚙️', html: '🌐', css: '🎨', py: '🐍',
+      };
+      return icons[ext] || '📎';
+    }
+
+    function getFileType(name) {
+      return name.split('.').pop().toUpperCase();
+    }
+
+    function formatSize(bytes) {
+      if (bytes < 1024)       return bytes + ' B';
+      if (bytes < 1024*1024)  return (bytes/1024).toFixed(1) + ' KB';
+      return (bytes/1024/1024).toFixed(1) + ' MB';
+    }
+
+    function updateStats() {
+      document.getElementById('stat-count').textContent = files.length;
+      const total = files.reduce((sum, f) => sum + f.size, 0);
+      document.getElementById('stat-size').textContent = formatSize(total);
+    }
+
+    function renderFiles() {
+      const list    = document.getElementById('file-list');
+      const query   = document.getElementById('search-input').value.toLowerCase();
+      const filtered = files.filter(f => f.name.toLowerCase().includes(query));
+
+      if (filtered.length === 0) {
+        list.innerHTML = `
+          <div class="empty-state">
+            <div class="empty-icon">📂</div>
+            <p>${query ? 'NO FILES MATCH YOUR SEARCH' : 'NO FILES UPLOADED YET'}</p>
+          </div>`;
+        return;
+      }
+
+      list.innerHTML = filtered.map((f, index) => `
+        <div class="file-item" style="animation-delay:${index * 0.05}s">
+          <div class="file-icon">${getFileIcon(f.name)}</div>
+          <div class="file-info">
+            <div class="file-name">${f.name}</div>
+            <div class="file-meta">
+              <span class="file-type-badge">${getFileType(f.name)}</span>
+              <span>${formatSize(f.size)}</span>
+              <span>${f.date}</span>
+            </div>
+          </div>
+          <button class="btn-download" onclick="downloadFile(${f.id})">&#8595; &nbsp;Download</button>
+          <button class="btn-delete" onclick="deleteFile(${f.id})" title="Delete">&#x2715;</button>
+        </div>
+      `).join('');
+
+      updateStats();
+    }
+
+    function downloadFile(id) {
+      const file = files.find(f => f.id === id);
+      if (!file) return;
+
+      if (file.blob) {
+        const url = URL.createObjectURL(file.blob);
+        const a   = document.createElement('a');
+        a.href     = url;
+        a.download = file.name;
+        a.click();
+        URL.revokeObjectURL(url);
+      } else {
+        alert(`\u2B07 Downloading "${file.name}"\n\n(Demo file — connect a backend to enable real downloads)`);
+      }
+    }
+
+    function deleteFile(id) {
+      if (!confirm('Delete this file?')) return;
+      files = files.filter(f => f.id !== id);
+      renderFiles();
+    }
+
+    document.getElementById('file-input').addEventListener('change', function (e) {
+      handleFiles(e.target.files);
+      this.value = '';
+    });
+
+    function handleFiles(fileList) {
+      Array.from(fileList).forEach((file, i) => {
+        setTimeout(() => simulateUpload(file), i * 400);
+      });
+    }
+
+    function simulateUpload(file) {
+      const prog  = document.getElementById('upload-progress');
+      const fill  = document.getElementById('progress-fill');
+      const pct   = document.getElementById('progress-pct');
+      const fname = document.getElementById('progress-filename');
+
+      prog.classList.add('active');
+      fname.textContent = file.name;
+
+      let percent = 0;
+      const interval = setInterval(() => {
+        percent += Math.random() * 15 + 5;
+        if (percent >= 100) {
+          percent = 100;
+          clearInterval(interval);
+
+          files.push({
+            id:   nextId++,
+            name: file.name,
+            size: file.size,
+            date: new Date().toISOString().split('T')[0],
+            type: getFileType(file.name),
+            blob: file
+          });
+
+          renderFiles();
+
+          setTimeout(() => {
+            prog.classList.remove('active');
+            fill.style.width = '0%';
+            pct.textContent  = '0%';
+          }, 600);
+        }
+
+        fill.style.width = percent + '%';
+        pct.textContent  = Math.round(percent) + '%';
+      }, 120);
+    }
+
+    const zone = document.getElementById('upload-zone');
+
+    zone.addEventListener('dragover', e => {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+
+    zone.addEventListener('dragleave', () => {
+      zone.classList.remove('drag-over');
+    });
+
+    zone.addEventListener('drop', e => {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      handleFiles(e.dataTransfer.files);
+    });
+
+    function handleLogout() {
+      sessionStorage.removeItem('loggedIn');
+      window.location.href = 'index.html';
+    }
+
+    const canvas = document.getElementById('canvas');
+    const ctx    = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function mkParticle() {
+      return {
+        x:     Math.random() * W,
+        y:     Math.random() * H,
+        r:     Math.random() * 1.2 + .3,
+        vx:    (Math.random() - .5) * .3,
+        vy:    (Math.random() - .5) * .3,
+        alpha: Math.random() * .5 + .1,
+        color: Math.random() > .5 ? '0,212,255' : '123,47,255'
+      };
+    }
+
+    for (let i = 0; i < 120; i++) particles.push(mkParticle());
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+        ctx.fill();
+        p.x += p.vx;
+        p.y += p.vy;
+        if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) {
+          Object.assign(p, mkParticle(), { x: Math.random() * W, y: Math.random() * H });
+        }
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    renderFiles();
+  </script>
+
+</body>
+</html>
