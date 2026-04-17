@@ -1,36 +1,35 @@
-```html
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Bumezoo — Under Maintenance</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <title>Bumezoo — Secure Files</title>
+
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400;500&display=swap" rel="stylesheet" />
+
   <style>
     :root {
-      --blue-glow: #00d4ff;
-      --blue-dim: #0088aa;
+      --blue-glow:   #00d4ff;
+      --blue-dim:    #0088aa;
       --purple-glow: #7b2fff;
-      --bg: #000000;
+      --bg:          #000000;
+      --surface:     rgba(255,255,255,.04);
+      --border:      rgba(0,212,255,.18);
+      --text-muted:  rgba(255,255,255,.45);
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
       background: var(--bg);
       font-family: 'Inter', sans-serif;
-      overflow: hidden;
-      height: 100vh;
-      width: 100vw;
+      color: #fff;
+      min-height: 100vh;
       display: flex;
       flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      position: relative;
+      overflow-x: hidden;
     }
 
-    /* ── Canvas particles ── */
     #canvas {
       position: fixed;
       inset: 0;
@@ -38,294 +37,339 @@
       pointer-events: none;
     }
 
-    /* ── Edge glow vignette ── */
     .vignette {
       position: fixed;
       inset: 0;
       z-index: 1;
       pointer-events: none;
       background:
-        radial-gradient(ellipse at 0% 50%, rgba(123,47,255,.18) 0%, transparent 55%),
-        radial-gradient(ellipse at 100% 50%, rgba(0,212,255,.15) 0%, transparent 55%),
-        radial-gradient(ellipse at 50% 100%, rgba(0,136,170,.12) 0%, transparent 50%);
+        radial-gradient(ellipse at 0% 50%,   rgba(123,47,255,.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 100% 50%,  rgba(0,212,255,.15)  0%, transparent 55%),
+        radial-gradient(ellipse at 50% 100%,  rgba(0,136,170,.12)  0%, transparent 50%);
     }
 
-    /* ── Main content ── */
-    .content {
-      position: relative;
+    .scanline {
+      position: fixed;
+      inset: 0;
       z-index: 2;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 2rem;
-      padding: 2rem;
-      width: 100%;
-      max-width: 680px;
-      text-align: center;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent, transparent 2px,
+        rgba(0,0,0,.04) 2px, rgba(0,0,0,.04) 4px
+      );
     }
 
-    /* ── Logo ── */
-    .logo-wrap {
+    header {
+      position: relative;
+      z-index: 10;
       display: flex;
-      flex-direction: column;
       align-items: center;
-      gap: .4rem;
-      animation: fadeDown .8s ease both;
+      justify-content: space-between;
+      padding: 1.4rem 2.5rem;
+      border-bottom: 1px solid var(--border);
+      background: rgba(0,0,0,.6);
+      backdrop-filter: blur(12px);
+      flex-wrap: wrap;
+      gap: 1rem;
+      animation: fadeDown .7s ease both;
     }
 
     .logo {
       font-family: 'Orbitron', monospace;
       font-weight: 900;
-      font-size: clamp(2.8rem, 10vw, 5.5rem);
+      font-size: clamp(1.3rem, 4vw, 1.9rem);
       letter-spacing: .18em;
       color: #fff;
+      text-decoration: none;
       text-shadow:
-        0 0 8px var(--blue-glow),
+        0 0 8px  var(--blue-glow),
         0 0 24px var(--blue-glow),
         0 0 60px rgba(0,212,255,.4);
       animation: pulse-glow 3s ease-in-out infinite;
     }
 
-    .subtitle {
+    .logo span {
       font-family: 'Share Tech Mono', monospace;
-      font-size: clamp(.65rem, 2vw, .85rem);
+      font-size: .65rem;
+      letter-spacing: .3em;
+      color: var(--blue-glow);
+      opacity: .7;
+      display: block;
+      margin-top: .2rem;
+    }
+
+    .login-form {
+      display: flex;
+      align-items: center;
+      gap: .75rem;
+      flex-wrap: wrap;
+    }
+
+    .login-form input {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: #fff;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .82rem;
+      letter-spacing: .05em;
+      padding: .55rem 1rem;
+      outline: none;
+      width: 160px;
+      transition: border-color .25s, box-shadow .25s;
+    }
+
+    .login-form input::placeholder { color: rgba(255,255,255,.3); }
+
+    .login-form input:focus {
+      border-color: var(--blue-glow);
+      box-shadow: 0 0 0 2px rgba(0,212,255,.15), 0 0 12px rgba(0,212,255,.2);
+    }
+
+    .btn-login {
+      background: transparent;
+      border: 1px solid var(--blue-glow);
+      border-radius: 6px;
+      color: var(--blue-glow);
+      font-family: 'Orbitron', monospace;
+      font-size: .7rem;
+      font-weight: 700;
+      letter-spacing: .15em;
+      padding: .55rem 1.4rem;
+      cursor: pointer;
+      text-transform: uppercase;
+      transition: all .2s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .btn-login:hover {
+      background: var(--blue-glow);
+      color: #000;
+      box-shadow: 0 0 20px rgba(0,212,255,.5);
+    }
+
+    .hero {
+      position: relative;
+      z-index: 5;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 5rem 2rem;
+      gap: 2rem;
+    }
+
+    .hero-eyebrow {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .72rem;
       letter-spacing: .35em;
       color: var(--blue-glow);
-      opacity: .75;
+      opacity: .7;
       text-transform: uppercase;
+      animation: fadeUp .8s .1s ease both;
     }
 
-    /* ── Icons ── */
-    .icons-row {
+    .hero-title {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.2rem, 8vw, 4.5rem);
+      letter-spacing: .12em;
+      line-height: 1.1;
+      text-shadow:
+        0 0 8px  var(--blue-glow),
+        0 0 30px var(--blue-glow),
+        0 0 80px rgba(0,212,255,.35);
+      animation: pulse-glow 3s ease-in-out infinite, fadeUp .8s .2s ease both;
+    }
+
+    .hero-title .accent {
+      color: var(--blue-glow);
+    }
+
+    .hero-desc {
+      font-weight: 300;
+      font-size: clamp(.85rem, 2.2vw, 1.05rem);
+      color: rgba(255,255,255,.55);
+      line-height: 1.85;
+      max-width: 540px;
+      animation: fadeUp .8s .35s ease both;
+    }
+
+    .hero-desc strong { color: rgba(255,255,255,.85); font-weight: 400; }
+
+    .cards {
       display: flex;
-      gap: 2rem;
-      align-items: center;
-      animation: fadeUp .9s .2s ease both;
+      gap: 1.2rem;
+      flex-wrap: wrap;
+      justify-content: center;
+      animation: fadeUp .8s .5s ease both;
     }
 
-    .icon-item {
-      font-size: clamp(1.8rem, 5vw, 2.6rem);
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.4rem 1.8rem;
+      width: 180px;
+      text-align: center;
+      transition: border-color .25s, box-shadow .25s, transform .25s;
+    }
+
+    .card:hover {
+      border-color: var(--blue-glow);
+      box-shadow: 0 0 24px rgba(0,212,255,.2);
+      transform: translateY(-4px);
+    }
+
+    .card-icon {
+      font-size: 1.9rem;
+      margin-bottom: .7rem;
       filter: drop-shadow(0 0 8px var(--blue-glow));
     }
 
-    .spin      { animation: spin 4s linear infinite; }
-    .spin-slow { animation: spin 7s linear infinite reverse; }
-    .wiggle    { animation: wiggle 2s ease-in-out infinite; }
-
-    /* ── Message ── */
-    .message {
-      font-family: 'Inter', sans-serif;
-      font-weight: 300;
-      font-size: clamp(.78rem, 2.2vw, 1rem);
-      color: rgba(255,255,255,.6);
-      line-height: 1.85;
-      max-width: 520px;
-      animation: fadeUp .9s .35s ease both;
-    }
-
-    .message strong {
-      color: rgba(255,255,255,.9);
-      font-weight: 400;
-    }
-
-    /* ── Progress ── */
-    .progress-wrap {
-      width: 100%;
-      max-width: 480px;
-      animation: fadeUp .9s .5s ease both;
-    }
-
-    .progress-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: baseline;
-      margin-bottom: .6rem;
-    }
-
-    .progress-label {
+    .card-label {
       font-family: 'Share Tech Mono', monospace;
-      font-size: .7rem;
-      letter-spacing: .2em;
-      color: rgba(255,255,255,.35);
-      text-transform: uppercase;
-    }
-
-    .progress-pct {
-      font-family: 'Orbitron', monospace;
-      font-weight: 700;
-      font-size: 1.1rem;
+      font-size: .72rem;
+      letter-spacing: .15em;
       color: var(--blue-glow);
-      text-shadow: 0 0 12px var(--blue-glow);
-      min-width: 3.5rem;
-      text-align: right;
-      transition: text-shadow .3s;
+      text-transform: uppercase;
+      margin-bottom: .35rem;
     }
 
-    .progress-track {
-      width: 100%;
-      height: 6px;
-      background: rgba(255,255,255,.08);
-      border-radius: 99px;
-      overflow: hidden;
-      position: relative;
+    .card-desc {
+      font-size: .78rem;
+      color: rgba(255,255,255,.4);
+      line-height: 1.6;
     }
 
-    .progress-fill {
-      height: 100%;
-      width: 0%;
-      border-radius: 99px;
-      background: linear-gradient(90deg, var(--blue-dim), var(--blue-glow));
-      box-shadow: 0 0 12px var(--blue-glow), 0 0 24px rgba(0,212,255,.35);
-      transition: width 3s cubic-bezier(.25,.46,.45,.94);
-      position: relative;
-    }
-
-    .progress-fill::after {
-      content: '';
-      position: absolute;
-      right: 0;
-      top: 50%;
-      transform: translateY(-50%);
-      width: 10px;
-      height: 10px;
-      border-radius: 50%;
-      background: #fff;
-      box-shadow: 0 0 8px var(--blue-glow), 0 0 16px var(--blue-glow);
-      animation: dot-pulse 1.5s ease-in-out infinite;
-    }
-
-    .progress-fill.done::after {
-      animation: dot-pulse-stopped 2s ease-in-out infinite;
-    }
-
-    /* ── Scanline ── */
-    .scanline {
-      position: fixed;
-      inset: 0;
-      z-index: 3;
-      pointer-events: none;
-      background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 2px,
-        rgba(0,0,0,.04) 2px,
-        rgba(0,0,0,.04) 4px
-      );
-    }
-
-    /* ── Footer ── */
-    footer {
-      position: fixed;
-      bottom: 1.5rem;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 2;
+    .error-msg {
+      display: none;
       font-family: 'Share Tech Mono', monospace;
-      font-size: .62rem;
+      font-size: .75rem;
+      color: #ff4466;
+      letter-spacing: .1em;
+      animation: fadeUp .3s ease both;
+    }
+
+    footer {
+      position: relative;
+      z-index: 5;
+      text-align: center;
+      padding: 1.2rem;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .6rem;
       letter-spacing: .18em;
       color: rgba(255,255,255,.18);
-      white-space: nowrap;
-      animation: fadeUp 1s .8s ease both;
+      border-top: 1px solid rgba(255,255,255,.05);
     }
 
-    /* ── Keyframes ── */
     @keyframes fadeDown {
-      from { opacity: 0; transform: translateY(-20px); }
+      from { opacity: 0; transform: translateY(-16px); }
       to   { opacity: 1; transform: translateY(0); }
     }
     @keyframes fadeUp {
       from { opacity: 0; transform: translateY(16px); }
       to   { opacity: 1; transform: translateY(0); }
     }
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-    @keyframes wiggle {
-      0%,100% { transform: rotate(-8deg); }
-      50%      { transform: rotate(8deg); }
-    }
     @keyframes pulse-glow {
       0%,100% {
-        text-shadow:
-          0 0 8px var(--blue-glow),
-          0 0 24px var(--blue-glow),
-          0 0 60px rgba(0,212,255,.4);
+        text-shadow: 0 0 8px var(--blue-glow), 0 0 24px var(--blue-glow), 0 0 60px rgba(0,212,255,.4);
       }
       50% {
-        text-shadow:
-          0 0 16px var(--blue-glow),
-          0 0 48px var(--blue-glow),
-          0 0 100px rgba(0,212,255,.6);
+        text-shadow: 0 0 16px var(--blue-glow), 0 0 48px var(--blue-glow), 0 0 100px rgba(0,212,255,.6);
       }
     }
-    @keyframes dot-pulse {
-      0%,100% { opacity: 1; box-shadow: 0 0 8px var(--blue-glow), 0 0 16px var(--blue-glow); }
-      50%      { opacity: .4; box-shadow: none; }
-    }
-    @keyframes dot-pulse-stopped {
-      0%,100% { opacity: 1; }
-      50%      { opacity: .6; }
-    }
 
-    /* ── Mobile ── */
-    @media (max-width: 480px) {
-      .content { gap: 1.5rem; }
-      .icons-row { gap: 1.4rem; }
+    @media (max-width: 600px) {
+      header { justify-content: center; }
+      .login-form input { width: 130px; }
     }
   </style>
 </head>
 <body>
 
   <canvas id="canvas"></canvas>
-
   <div class="vignette"></div>
   <div class="scanline"></div>
 
-  <div class="content">
-
-    <!-- Logo -->
-    <div class="logo-wrap">
-      <div class="logo">BUMEZOO</div>
-      <div class="subtitle">AI &nbsp;Agent &nbsp;Platform</div>
+  <header>
+    <div class="logo">
+      BUMEZOO
+      <span>Secure File Vault</span>
     </div>
 
-    <!-- Animated icons -->
-    <div class="icons-row">
-      <span class="icon-item spin">⚙️</span>
-      <span class="icon-item wiggle">🔧</span>
-      <span class="icon-item spin-slow">⚙️</span>
-      <span class="icon-item wiggle" style="animation-delay:.6s">🛠️</span>
-      <span class="icon-item spin" style="animation-duration:5s">⚙️</span>
+    <div class="login-form">
+      <input
+        type="text"
+        id="username"
+        placeholder="Username"
+        autocomplete="username"
+      />
+      <input
+        type="password"
+        id="password"
+        placeholder="Password"
+        autocomplete="current-password"
+      />
+      <button class="btn-login" onclick="handleLogin()">LOGIN</button>
     </div>
+  </header>
 
-    <!-- Message -->
-    <p class="message">
-      <strong>Welcome to Bumezoo.</strong><br>
-      We're currently building something extraordinary for you.
-      Our team is working hard behind the scenes to bring you
-      the future of AI Agents. We sincerely apologize for the
-      inconvenience and truly appreciate your patience.
+  <main class="hero">
+    <div class="hero-eyebrow">Personal Cloud Storage</div>
+
+    <h1 class="hero-title">
+      YOUR FILES.<br>
+      <span class="accent">SECURED.</span>
+    </h1>
+
+    <p class="hero-desc">
+      <strong>Welcome to Bumezoo Vault.</strong><br>
+      Upload, manage, and download your personal files
+      from anywhere — encrypted, private, and always at your fingertips.
+      Log in above to access your dashboard.
     </p>
 
-    <!-- Progress bar -->
-    <div class="progress-wrap">
-      <div class="progress-header">
-        <span class="progress-label">Build Progress</span>
-        <span class="progress-pct" id="pct">0%</span>
+    <p class="error-msg" id="error-msg">
+      &#9888; &nbsp;INVALID CREDENTIALS — TRY AGAIN
+    </p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon">🔒</div>
+        <div class="card-label">Secure</div>
+        <div class="card-desc">Your files stay private, always.</div>
       </div>
-      <div class="progress-track">
-        <div class="progress-fill" id="bar"></div>
+
+      <div class="card">
+        <div class="card-icon">☁️</div>
+        <div class="card-label">Cloud</div>
+        <div class="card-desc">Access from any device, anytime.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">⚡</div>
+        <div class="card-label">Fast</div>
+        <div class="card-desc">Upload &amp; download at full speed.</div>
+      </div>
+
+      <div class="card">
+        <div class="card-icon">📁</div>
+        <div class="card-label">Organized</div>
+        <div class="card-desc">All your files in one clean place.</div>
       </div>
     </div>
-
-  </div>
+  </main>
 
   <footer>© 2026 Bumezoo — All rights reserved</footer>
 
   <script>
-    /* ── Particles ── */
     const canvas = document.getElementById('canvas');
-    const ctx = canvas.getContext('2d');
+    const ctx    = canvas.getContext('2d');
     let W, H, particles = [];
 
     function resize() {
@@ -337,11 +381,11 @@
 
     function mkParticle() {
       return {
-        x: Math.random() * W,
-        y: Math.random() * H,
-        r: Math.random() * 1.2 + .3,
-        vx: (Math.random() - .5) * .3,
-        vy: (Math.random() - .5) * .3,
+        x:     Math.random() * W,
+        y:     Math.random() * H,
+        r:     Math.random() * 1.2 + .3,
+        vx:    (Math.random() - .5) * .3,
+        vy:    (Math.random() - .5) * .3,
         alpha: Math.random() * .5 + .1,
         color: Math.random() > .5 ? '0,212,255' : '123,47,255'
       };
@@ -356,7 +400,8 @@
         ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
         ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
         ctx.fill();
-        p.x += p.vx; p.y += p.vy;
+        p.x += p.vx;
+        p.y += p.vy;
         if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) {
           Object.assign(p, mkParticle(), { x: Math.random() * W, y: Math.random() * H });
         }
@@ -365,34 +410,32 @@
     }
     drawParticles();
 
-    /* ── Progress bar ── */
-    const bar = document.getElementById('bar');
-    const pct = document.getElementById('pct');
-    const target = 80;
-    const duration = 3000;
-    let start = null;
+    function handleLogin() {
+      const user = document.getElementById('username').value.trim();
+      const pass = document.getElementById('password').value.trim();
+      const err  = document.getElementById('error-msg');
 
-    function animateBar(ts) {
-      if (!start) start = ts;
-      const elapsed = ts - start;
-      const progress = Math.min(elapsed / duration, 1);
-      // ease-out cubic
-      const eased = 1 - Math.pow(1 - progress, 3);
-      const current = Math.round(eased * target);
-      bar.style.width = current + '%';
-      pct.textContent  = current + '%';
-      if (progress < 1) {
-        requestAnimationFrame(animateBar);
+      // Demo credentials — replace with real auth when backend is ready
+      const CORRECT_USER = 'admin';
+      const CORRECT_PASS = 'bumezoo2026';
+
+      if (user === CORRECT_USER && pass === CORRECT_PASS) {
+        sessionStorage.setItem('loggedIn', 'true');
+        window.location.href = 'dashboard.html';
       } else {
-        bar.classList.add('done');
+        err.style.display = 'block';
+        const form = document.querySelector('.login-form');
+        form.style.animation = 'none';
+        form.style.transform = 'translateX(6px)';
+        setTimeout(() => { form.style.transform = 'translateX(-6px)'; }, 80);
+        setTimeout(() => { form.style.transform = 'translateX(0)';    }, 160);
       }
     }
 
-    // Start after a short delay so user sees 0%
-    setTimeout(() => requestAnimationFrame(animateBar), 600);
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Enter') handleLogin();
+    });
   </script>
 
 </body>
 </html>
-
-```

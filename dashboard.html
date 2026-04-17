@@ -594,7 +594,7 @@
 
   <script>
     if (sessionStorage.getItem('loggedIn') !== 'true') {
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     }
 
     const savedUser = sessionStorage.getItem('username') || 'admin';
@@ -762,7 +762,7 @@
 
     function handleLogout() {
       sessionStorage.removeItem('loggedIn');
-      window.location.href = 'login.html';
+      window.location.href = 'index.html';
     }
 
     const canvas = document.getElementById('canvas');
