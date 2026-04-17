@@ -1,0 +1,398 @@
+```html
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Bumezoo — Under Maintenance</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Share+Tech+Mono&family=Inter:wght@300;400&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --blue-glow: #00d4ff;
+      --blue-dim: #0088aa;
+      --purple-glow: #7b2fff;
+      --bg: #000000;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      font-family: 'Inter', sans-serif;
+      overflow: hidden;
+      height: 100vh;
+      width: 100vw;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    /* ── Canvas particles ── */
+    #canvas {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── Edge glow vignette ── */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse at 0% 50%, rgba(123,47,255,.18) 0%, transparent 55%),
+        radial-gradient(ellipse at 100% 50%, rgba(0,212,255,.15) 0%, transparent 55%),
+        radial-gradient(ellipse at 50% 100%, rgba(0,136,170,.12) 0%, transparent 50%);
+    }
+
+    /* ── Main content ── */
+    .content {
+      position: relative;
+      z-index: 2;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2rem;
+      padding: 2rem;
+      width: 100%;
+      max-width: 680px;
+      text-align: center;
+    }
+
+    /* ── Logo ── */
+    .logo-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: .4rem;
+      animation: fadeDown .8s ease both;
+    }
+
+    .logo {
+      font-family: 'Orbitron', monospace;
+      font-weight: 900;
+      font-size: clamp(2.8rem, 10vw, 5.5rem);
+      letter-spacing: .18em;
+      color: #fff;
+      text-shadow:
+        0 0 8px var(--blue-glow),
+        0 0 24px var(--blue-glow),
+        0 0 60px rgba(0,212,255,.4);
+      animation: pulse-glow 3s ease-in-out infinite;
+    }
+
+    .subtitle {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: clamp(.65rem, 2vw, .85rem);
+      letter-spacing: .35em;
+      color: var(--blue-glow);
+      opacity: .75;
+      text-transform: uppercase;
+    }
+
+    /* ── Icons ── */
+    .icons-row {
+      display: flex;
+      gap: 2rem;
+      align-items: center;
+      animation: fadeUp .9s .2s ease both;
+    }
+
+    .icon-item {
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      filter: drop-shadow(0 0 8px var(--blue-glow));
+    }
+
+    .spin      { animation: spin 4s linear infinite; }
+    .spin-slow { animation: spin 7s linear infinite reverse; }
+    .wiggle    { animation: wiggle 2s ease-in-out infinite; }
+
+    /* ── Message ── */
+    .message {
+      font-family: 'Inter', sans-serif;
+      font-weight: 300;
+      font-size: clamp(.78rem, 2.2vw, 1rem);
+      color: rgba(255,255,255,.6);
+      line-height: 1.85;
+      max-width: 520px;
+      animation: fadeUp .9s .35s ease both;
+    }
+
+    .message strong {
+      color: rgba(255,255,255,.9);
+      font-weight: 400;
+    }
+
+    /* ── Progress ── */
+    .progress-wrap {
+      width: 100%;
+      max-width: 480px;
+      animation: fadeUp .9s .5s ease both;
+    }
+
+    .progress-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: baseline;
+      margin-bottom: .6rem;
+    }
+
+    .progress-label {
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .7rem;
+      letter-spacing: .2em;
+      color: rgba(255,255,255,.35);
+      text-transform: uppercase;
+    }
+
+    .progress-pct {
+      font-family: 'Orbitron', monospace;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: var(--blue-glow);
+      text-shadow: 0 0 12px var(--blue-glow);
+      min-width: 3.5rem;
+      text-align: right;
+      transition: text-shadow .3s;
+    }
+
+    .progress-track {
+      width: 100%;
+      height: 6px;
+      background: rgba(255,255,255,.08);
+      border-radius: 99px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-fill {
+      height: 100%;
+      width: 0%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--blue-dim), var(--blue-glow));
+      box-shadow: 0 0 12px var(--blue-glow), 0 0 24px rgba(0,212,255,.35);
+      transition: width 3s cubic-bezier(.25,.46,.45,.94);
+      position: relative;
+    }
+
+    .progress-fill::after {
+      content: '';
+      position: absolute;
+      right: 0;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #fff;
+      box-shadow: 0 0 8px var(--blue-glow), 0 0 16px var(--blue-glow);
+      animation: dot-pulse 1.5s ease-in-out infinite;
+    }
+
+    .progress-fill.done::after {
+      animation: dot-pulse-stopped 2s ease-in-out infinite;
+    }
+
+    /* ── Scanline ── */
+    .scanline {
+      position: fixed;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      background: repeating-linear-gradient(
+        0deg,
+        transparent,
+        transparent 2px,
+        rgba(0,0,0,.04) 2px,
+        rgba(0,0,0,.04) 4px
+      );
+    }
+
+    /* ── Footer ── */
+    footer {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 2;
+      font-family: 'Share Tech Mono', monospace;
+      font-size: .62rem;
+      letter-spacing: .18em;
+      color: rgba(255,255,255,.18);
+      white-space: nowrap;
+      animation: fadeUp 1s .8s ease both;
+    }
+
+    /* ── Keyframes ── */
+    @keyframes fadeDown {
+      from { opacity: 0; transform: translateY(-20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+    @keyframes wiggle {
+      0%,100% { transform: rotate(-8deg); }
+      50%      { transform: rotate(8deg); }
+    }
+    @keyframes pulse-glow {
+      0%,100% {
+        text-shadow:
+          0 0 8px var(--blue-glow),
+          0 0 24px var(--blue-glow),
+          0 0 60px rgba(0,212,255,.4);
+      }
+      50% {
+        text-shadow:
+          0 0 16px var(--blue-glow),
+          0 0 48px var(--blue-glow),
+          0 0 100px rgba(0,212,255,.6);
+      }
+    }
+    @keyframes dot-pulse {
+      0%,100% { opacity: 1; box-shadow: 0 0 8px var(--blue-glow), 0 0 16px var(--blue-glow); }
+      50%      { opacity: .4; box-shadow: none; }
+    }
+    @keyframes dot-pulse-stopped {
+      0%,100% { opacity: 1; }
+      50%      { opacity: .6; }
+    }
+
+    /* ── Mobile ── */
+    @media (max-width: 480px) {
+      .content { gap: 1.5rem; }
+      .icons-row { gap: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="canvas"></canvas>
+
+  <div class="vignette"></div>
+  <div class="scanline"></div>
+
+  <div class="content">
+
+    <!-- Logo -->
+    <div class="logo-wrap">
+      <div class="logo">BUMEZOO</div>
+      <div class="subtitle">AI &nbsp;Agent &nbsp;Platform</div>
+    </div>
+
+    <!-- Animated icons -->
+    <div class="icons-row">
+      <span class="icon-item spin">⚙️</span>
+      <span class="icon-item wiggle">🔧</span>
+      <span class="icon-item spin-slow">⚙️</span>
+      <span class="icon-item wiggle" style="animation-delay:.6s">🛠️</span>
+      <span class="icon-item spin" style="animation-duration:5s">⚙️</span>
+    </div>
+
+    <!-- Message -->
+    <p class="message">
+      <strong>Welcome to Bumezoo.</strong><br>
+      We're currently building something extraordinary for you.
+      Our team is working hard behind the scenes to bring you
+      the future of AI Agents. We sincerely apologize for the
+      inconvenience and truly appreciate your patience.
+    </p>
+
+    <!-- Progress bar -->
+    <div class="progress-wrap">
+      <div class="progress-header">
+        <span class="progress-label">Build Progress</span>
+        <span class="progress-pct" id="pct">0%</span>
+      </div>
+      <div class="progress-track">
+        <div class="progress-fill" id="bar"></div>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>© 2026 Bumezoo — All rights reserved</footer>
+
+  <script>
+    /* ── Particles ── */
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [];
+
+    function resize() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    function mkParticle() {
+      return {
+        x: Math.random() * W,
+        y: Math.random() * H,
+        r: Math.random() * 1.2 + .3,
+        vx: (Math.random() - .5) * .3,
+        vy: (Math.random() - .5) * .3,
+        alpha: Math.random() * .5 + .1,
+        color: Math.random() > .5 ? '0,212,255' : '123,47,255'
+      };
+    }
+
+    for (let i = 0; i < 120; i++) particles.push(mkParticle());
+
+    function drawParticles() {
+      ctx.clearRect(0, 0, W, H);
+      particles.forEach(p => {
+        ctx.beginPath();
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(${p.color},${p.alpha})`;
+        ctx.fill();
+        p.x += p.vx; p.y += p.vy;
+        if (p.x < 0 || p.x > W || p.y < 0 || p.y > H) {
+          Object.assign(p, mkParticle(), { x: Math.random() * W, y: Math.random() * H });
+        }
+      });
+      requestAnimationFrame(drawParticles);
+    }
+    drawParticles();
+
+    /* ── Progress bar ── */
+    const bar = document.getElementById('bar');
+    const pct = document.getElementById('pct');
+    const target = 80;
+    const duration = 3000;
+    let start = null;
+
+    function animateBar(ts) {
+      if (!start) start = ts;
+      const elapsed = ts - start;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out cubic
+      const eased = 1 - Math.pow(1 - progress, 3);
+      const current = Math.round(eased * target);
+      bar.style.width = current + '%';
+      pct.textContent  = current + '%';
+      if (progress < 1) {
+        requestAnimationFrame(animateBar);
+      } else {
+        bar.classList.add('done');
+      }
+    }
+
+    // Start after a short delay so user sees 0%
+    setTimeout(() => requestAnimationFrame(animateBar), 600);
+  </script>
+
+</body>
+</html>
+
+```
