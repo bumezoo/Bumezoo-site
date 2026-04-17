@@ -187,3 +187,4 @@ async function handleDelete(filename, env) {
 
   return jsonResponse({ success: true, deleted: filename });
 }
+
