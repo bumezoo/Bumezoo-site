@@ -1,0 +1,21 @@
+name: Deploy bumezoo-storage Worker
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - storage-worker.js
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Deploy to Cloudflare Workers
+        uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CF_API_TOKEN }}
+          accountId: 0de3785267a52b7728aaf53d
+          workingDirectory: .
+          command: deploy storage-worker.js --name bumezoo-storage --compatibility-date 2026-04-17
